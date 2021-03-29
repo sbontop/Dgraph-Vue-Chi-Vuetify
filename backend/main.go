@@ -58,9 +58,26 @@ func main() {
 	})
 	r.Route("/realbuyers", func(r chi.Router) {
 		r.With(paginate).Get("/", ListRealBuyers)
-		r.Get("/purchaseHistory", ListPurchaseHistory)
+
+		r.Route("/purchaseHistory/{buyer_id}", func(r chi.Router) {
+			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+				var buyer *Buyer
+				var err error
+				buyer, err = dbGetBuyer(chi.URLParam(r, "buyer_id"))
+				if err != nil {
+					render.Render(w, r, ErrNotFound)
+					return
+				}
+				response := dbGetPurchasesHistory(buyer.ID)
+				_, _ = w.Write([]byte(response))
+			})
+		})
 		r.Route("/ip/{buyer_id}", func(r chi.Router) {
 			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("Access-Control-Allow-Origin", "*")
 				var buyer *Buyer
 				var err error
 				buyer, err = dbGetBuyer(chi.URLParam(r, "buyer_id"))
@@ -74,6 +91,8 @@ func main() {
 		})
 		r.Route("/recommendations/{buyer_id}", func(r chi.Router) {
 			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("Access-Control-Allow-Origin", "*")
 				var buyer *Buyer
 				var err error
 				buyer, err = dbGetBuyer(chi.URLParam(r, "buyer_id"))
@@ -97,6 +116,8 @@ func main() {
 }
 
 func ListBuyers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := render.RenderList(w, r, NewBuyerListResponse(buyers)); err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -104,20 +125,17 @@ func ListBuyers(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListRealBuyers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := render.RenderList(w, r, NewRealBuyerListResponse(realbuyers)); err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 }
 
-func ListPurchaseHistory(w http.ResponseWriter, r *http.Request) {
-	if err := render.RenderList(w, r, NewPurchaseHistoryListResponse(purchasesHistory)); err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
-	}
-}
-
 func ListProducts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := render.RenderList(w, r, NewProductListResponse(products)); err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -125,6 +143,8 @@ func ListProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListTransactions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := render.RenderList(w, r, NewTransactionListResponse(transactions)); err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -260,14 +280,6 @@ func NewRealBuyerListResponse(buyers []*Buyer) []render.Renderer {
 	list := []render.Renderer{}
 	for _, realbuyer := range realbuyers {
 		list = append(list, NewRealBuyerResponse(realbuyer))
-	}
-	return list
-}
-
-func NewPurchaseHistoryListResponse(purchaseHistory []*PurchaseHistory) []render.Renderer {
-	list := []render.Renderer{}
-	for _, purchaseHistory := range purchasesHistory {
-		list = append(list, NewPurchaseHistoryResponse(purchaseHistory))
 	}
 	return list
 }
@@ -428,17 +440,15 @@ func dbGetRealBuyers() []*Buyer {
 	return r.Buyers
 }
 
-// Purchases History from dgraph
-var purchasesHistory = dbGetPurchasesHistory()
-
-func dbGetPurchasesHistory() []*PurchaseHistory {
+func dbGetPurchasesHistory(buyer_id string) []byte {
 	// Initialize dgraph
 	dg, cancel := getDgraphClient()
 	defer cancel()
 	ctx := context.Background()
+	variables := map[string]string{"$id1": buyer_id}
 	const q = `
-	query myQuery() {
-		purchasesHistory(func: eq(buyer_id, "ad2ba138")) {
+	query myQuery($id1: string) {
+		purchasesHistory(func: eq(buyer_id, $id1)) {
 			product {
 				product_id
 				product_name
@@ -447,7 +457,7 @@ func dbGetPurchasesHistory() []*PurchaseHistory {
 		}
 	}	
 	`
-	resp, err := dg.NewTxn().Query(ctx, q)
+	resp, err := dg.NewTxn().QueryWithVars(ctx, q, variables)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -457,7 +467,8 @@ func dbGetPurchasesHistory() []*PurchaseHistory {
 	if err := json.Unmarshal(resp.GetJson(), &r); err != nil {
 		log.Fatal(err)
 	}
-	return r.PurchasesHistory
+	// return r.PurchasesHistory
+	return resp.GetJson()
 }
 
 // get buyers by ip from dgraph
