@@ -511,6 +511,7 @@ func dbGetBuyersRecomByAge(age string) []byte {
 	query myQuery($id1: int) {
 		productRecom(func: eq(buyer_age, $id1)) {
 			product {
+			  product_id
 			  product_name
 			  product_price
 			}

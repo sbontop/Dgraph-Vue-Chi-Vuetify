@@ -1,4 +1,4 @@
-# my-app
+# buyers-app
 
 ## Project setup
 ```
