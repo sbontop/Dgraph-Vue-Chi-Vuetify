@@ -12,12 +12,12 @@ Full Stack Boilerplate Project built ontop tech stacks including graph-based dat
 ## Backend
 1. cd backend
 2. go get "github.com/go-chi/chi"
-	go get "github.com/go-chi/chi/v5/middleware"
-	go get "github.com/go-chi/render"
-  go get "github.com/dgraph-io/dgo/v2"
-	go get "github.com/dgraph-io/dgo/v2/protos/api"
-	go get "google.golang.org/grpc"
-3. go run main.go
+3. go get "github.com/go-chi/chi/v5/middleware"
+4. go get "github.com/go-chi/render"
+5. go get "github.com/dgraph-io/dgo/v2"
+6. go get "github.com/dgraph-io/dgo/v2/protos/api"
+7. go get "google.golang.org/grpc"
+8. go run main.go
 
 ## Dgraph Database
 1. docker run --rm -it -p 8000:8000 -p 8080:8080 -p 9080:9080 dgraph/standalone:v20.11.3
