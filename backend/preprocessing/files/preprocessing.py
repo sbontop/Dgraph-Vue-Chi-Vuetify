@@ -2,6 +2,8 @@
 import json
 
 # Write buyers into a dictionary data structure
+
+
 def buyersToDictionary(filename):
     buyersFile = open(filename, "r+")
     data = json.load(buyersFile)
@@ -17,7 +19,7 @@ def buyersToDictionary(filename):
 
 # get buyer detail by buyer_id
 def getBuyerDetail(buyer_id):
-    dic_buyers = buyersToDictionary("files/buyers.json")
+    dic_buyers = buyersToDictionary("processed/buyers.json")
     # print(dic_buyers)
     # print(dic_buyers['buyers'][buyer_id])
     # print(buyer_id)
@@ -106,7 +108,7 @@ def productsToDict(filename):
 
 
 def getProductDetail(product_id):
-    dic_products = productsToDict("files/products.csv")
+    dic_products = productsToDict("raw/products.csv")
     return dic_products['products'][product_id]
 
 
@@ -121,9 +123,9 @@ def getProductArray(arr_product_ids):
         product_detail = getProductDetail(product_id)
         # print(product_detail)
         arr.append({
-            'product_id': product_id,
-            'product_name': product_detail['product_name'],
-            'product_price': product_detail['product_price']
+            'id': product_id,
+            'name': product_detail['product_name'],
+            'price': product_detail['product_price']
         })
     return arr
 
@@ -162,11 +164,11 @@ def preprocessTransactions(filename):
                 # for product_id in arr_product_id:
                 #     data['transactions'].append({
                 #         'transaction_id': transaction_id,
-                #         'buyer': [{
+                #         'buyer': {
                 #             'buyer_id': buyer_id,
                 #             'buyer_name': buyer_detail['buyer_name'],
                 #             'buyer_age': buyer_detail['buyer_age']
-                #         }],
+                #         },
                 #         'product': [],
                 #         'ip': ip,
                 #         'device': device
@@ -174,15 +176,20 @@ def preprocessTransactions(filename):
 
                 data['transactions'].append({
                     'transaction_id': transaction_id,
+                    # 'buyer': {
+                    #     'id': buyer_id,
+                    #     'name': buyer_detail['buyer_name'],
+                    #     'age': buyer_detail['buyer_age']
+                    # },
                     'buyer_id': buyer_id,
                     'buyer_name': buyer_detail['buyer_name'],
                     'buyer_age': buyer_detail['buyer_age'],
-                    'product': getProductArray(arr_product_id),
+                    'products': getProductArray(arr_product_id),
                     'ip': ip,
-                    'device': device,                    
+                    'device': device,
                 })
             no_line += 1
-    with open("files/transactions-processed.json", "w+") as outfile:
+    with open("processed/transactions-processed.json", "w+") as outfile:
         json.dump(data, outfile)
     outfile.close()
 
@@ -190,4 +197,4 @@ def preprocessTransactions(filename):
 # Call methods
 # productsToJson("files/products.csv")
 # buyersToDictionary("files/buyers.json")
-preprocessTransactions("files/transactions.csv")
+preprocessTransactions("raw/transactions.csv")
