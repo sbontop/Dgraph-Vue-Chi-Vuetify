@@ -1,5 +1,5 @@
 # Dgraph-Vue-Chi-Vuetify
-Full Stack Boilerplate Project built ontop tech stacks including graph-based database called DGraph, a thread safe and secure Backend in Go and an interactive Frontend in Vue.js
+Full Stack Boilerplate Project built ontop tech stacks including graph-based database called DGraph, a robust and secure Backend in Go and an interactive Frontend in Vue.js
 
 # Installation
 
